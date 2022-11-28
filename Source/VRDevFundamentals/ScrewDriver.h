@@ -22,6 +22,11 @@ class VRDEVFUNDAMENTALS_API AScrewDriver : public AStaticMeshActor, public IMyIn
 	UPROPERTY(EditAnywhere, Category = "ScrewDriver")
 		UBoxComponent* BoxCollision;
 private:
+	float TimerOfTeleportation;
+
+	FVector InitialPos;
+
+	FRotator InitialRot;
 
 	UPROPERTY(EditAnywhere, Category = "ScrewDriver")
 		bool bIsInHand;

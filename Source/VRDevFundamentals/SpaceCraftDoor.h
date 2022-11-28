@@ -36,6 +36,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		float TimeToOpenDoor;
 
+	bool DoorFinishedMoving = true;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,7 +45,7 @@ private:
 
 	FVector ClosedLocation;
 	FRotator BaseRotation;
-	bool DoorFinishedMoving = true;
+	float Timer = 0;
 
 public:	
 	// Called every frame

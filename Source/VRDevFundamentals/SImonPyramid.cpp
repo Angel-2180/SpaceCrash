@@ -2,6 +2,8 @@
 
 #include "SimonPyramid.h"
 #include "IndexCollision.h"
+#include "SimonPyramidBase.h"
+#include "SpaceCrashGameInstance.h"
 #include "Kismet/KismetArrayLibrary.h"
 
 // Fill out your copyright notice in the Description page of Project Settings.
@@ -39,16 +41,19 @@ ASimonPyramid::ASimonPyramid()
 void ASimonPyramid::BeginPlay()
 {
 	Super::BeginPlay();
+	GameInstance = Cast<USpaceCrashGameInstance>(GetGameInstance());
+	BaseMesh->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapBaseBegin);
+	BaseMesh->OnComponentEndOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapBaseEnd);
 
-	Face1->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapBegin);
+	Face1->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapFaceBegin);
 
 	Face1->SetMaterial(0, Pyramid_Off_Material);
 
-	Face2->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapBegin);
+	Face2->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapFaceBegin);
 
 	Face2->SetMaterial(0, Pyramid_Off_Material);
 
-	Face3->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapBegin);
+	Face3->OnComponentBeginOverlap.AddDynamic(this, &ASimonPyramid::OnOverlapFaceBegin);
 
 	Face3->SetMaterial(0, Pyramid_Off_Material);
 
@@ -60,7 +65,7 @@ void ASimonPyramid::BeginPlay()
 	}
 }
 
-void ASimonPyramid::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+void ASimonPyramid::OnOverlapFaceBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AIndexCollision* finger = Cast<AIndexCollision>(OtherActor);
@@ -75,14 +80,15 @@ void ASimonPyramid::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 				{
 					//call end of puzzle event
 					bPlayCompletedSound = true;
+					bPuzzleDone = true;
 					bPuzzleStarted = false;
+					SetActorTickEnabled(false);
 				}
 				else
 				{
 					if (face == Faces[NbrOfActiveFaces])
 					{
 						OverlappedComp->SetMaterial(0, Pyramid_On_Material);
-						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Faecs: %i"), Faces.Num()));
 						NbrOfActiveFaces++;
 					}
 					bPlayFailedSound = true;
@@ -92,10 +98,30 @@ void ASimonPyramid::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	}
 }
 
+void ASimonPyramid::OnOverlapBaseBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASimonPyramidBase* PyramidBaseCast = Cast<ASimonPyramidBase>(OtherActor);
+	if (PyramidBaseCast != nullptr)
+	{
+		PyramidBase = PyramidBaseCast;
+	}
+}
+
+void ASimonPyramid::OnOverlapBaseEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	ASimonPyramidBase* PyramidBaseCast = Cast<ASimonPyramidBase>(OtherActor);
+	if (PyramidBaseCast == nullptr)
+	{
+		PyramidBase = nullptr;;
+	}
+}
+
 // Called every frame
 void ASimonPyramid::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	if (bPuzzleStarted)
 	{
 		Timer += DeltaTime;
@@ -125,15 +151,34 @@ void ASimonPyramid::Tick(float DeltaTime)
 }
 void ASimonPyramid::Interact_Implementation(USceneComponent* ControllerUsed)
 {
-	bPuzzleStarted = true;
-	BaseMesh->SetSimulatePhysics(false);
-	BaseMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	BaseMesh->AttachToComponent(ControllerUsed, FAttachmentTransformRules::KeepWorldTransform);
+	if (GameInstance->bSecondPuzzleIsDone)
+	{
+		bPuzzleStarted = true;
+		BaseMesh->SetSimulatePhysics(false);
+		BaseMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		BaseMesh->AttachToComponent(ControllerUsed, FAttachmentTransformRules::KeepWorldTransform);
+	}
 }
 
 void ASimonPyramid::StopInteract_Implementation()
 {
-	BaseMesh->SetSimulatePhysics(true);
-	BaseMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-	BaseMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	if (PyramidBase != nullptr)
+	{
+		BaseMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		BaseMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		BaseMesh->AttachToComponent(PyramidBase->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+		BaseMesh->SetRelativeLocation(FVector(0, 0, 0));
+		BaseMesh->SetRelativeRotation(FRotator(0, 0, 0));
+		if (bPuzzleDone && GameInstance->bSecondPuzzleIsDone)
+		{
+			GameInstance->bThirdPuzzleIsDone = true;
+			SetActorEnableCollision(false);
+		}
+	}
+	else
+	{
+		BaseMesh->SetSimulatePhysics(true);
+		BaseMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		BaseMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	}
 }

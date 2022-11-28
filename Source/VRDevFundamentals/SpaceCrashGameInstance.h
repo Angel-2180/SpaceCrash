@@ -26,4 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 		bool bFourthPuzzleIsDone;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bEndGame;
 };

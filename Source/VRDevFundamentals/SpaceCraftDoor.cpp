@@ -30,7 +30,15 @@ void ASpaceCraftDoor::BeginPlay()
 void ASpaceCraftDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (!DoorFinishedMoving)
+	{
+		Timer += DeltaTime;
+		if (Timer >= TimeToOpenDoor)
+		{
+			DoorFinishedMoving = true;
+			Timer = 0;
+		}
+	}
 }
 
 void ASpaceCraftDoor::OpenDoor()
@@ -38,7 +46,8 @@ void ASpaceCraftDoor::OpenDoor()
 	IsOpen = true;
 	//if (DoorFinishedMoving)
 	//{
-		//DoorFinishedMoving = false;
+	DoorFinishedMoving = false;
+	Timer = 0;
 	PlayDoorOpeningSound = true;
 	FLatentActionInfo LatentInfo;
 	LatentInfo.CallbackTarget = this;
@@ -68,7 +77,8 @@ void ASpaceCraftDoor::CloseDoor()
 	IsOpen = false;
 	//if (DoorFinishedMoving)
 	//{
-		//DoorFinishedMoving = false;
+	DoorFinishedMoving = false;
+	Timer = 0;
 	PlayDoorClosingSound = true;
 	FLatentActionInfo LatentInfo;
 	LatentInfo.CallbackTarget = this;

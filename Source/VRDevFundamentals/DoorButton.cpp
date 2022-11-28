@@ -48,23 +48,26 @@ void ADoorButton::Tick(float DeltaTime)
 
 void ADoorButton::ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
-	if (Finger != nullptr)
+	if (DoorControlled->DoorFinishedMoving)
 	{
-		Index = Finger;
-		if (Index->SphereCollider->IsActive())
+		AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
+		if (Finger != nullptr)
 		{
-			OverlappedComp->SetMaterial(0, SelectedMat);
-			if (DoorControlled->IsOpen)
+			Index = Finger;
+			if (Index->SphereCollider->IsActive())
 			{
-				if (DoorEngine->TotalEnergyRemaining > DoorEngine->EnergyCostToCloseDoor)
+				OverlappedComp->SetMaterial(0, SelectedMat);
+				if (DoorControlled->IsOpen)
 				{
-					DoorControlled->CloseDoor();
-					DoorEngine->TotalEnergyRemaining -= DoorEngine->EnergyCostToCloseDoor;
+					if (DoorEngine->TotalEnergyRemaining > DoorEngine->EnergyCostToCloseDoor)
+					{
+						DoorControlled->CloseDoor();
+						DoorEngine->TotalEnergyRemaining -= DoorEngine->EnergyCostToCloseDoor;
+					}
 				}
+				else
+					DoorControlled->OpenDoor();
 			}
-			else
-				DoorControlled->OpenDoor();
 		}
 	}
 }

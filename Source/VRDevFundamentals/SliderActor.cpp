@@ -3,7 +3,7 @@
 #include "SliderActor.h"
 #include "IndexCollision.h"
 #include "Kismet/KismetMaterialLibrary.h"
-
+#include "Kismet/GameplayStatics.h"
 #include <Runtime/Engine/Classes/Kismet/KismetMathLibrary.h>
 
 // Sets default values

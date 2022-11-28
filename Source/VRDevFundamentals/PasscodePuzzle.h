@@ -4,40 +4,41 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SliderActor.h"
 #include "PasscodePuzzle.generated.h"
 
 UCLASS()
 class VRDEVFUNDAMENTALS_API APasscodePuzzle : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	APasscodePuzzle();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Init")
-	int32 NbOfButton = 9;
+		int32 NbOfButton = 9;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Init")
-	int32 NbOfButtonNeededForCombination = 4;
+		int32 NbOfButtonNeededForCombination = 4;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Init")
-	TArray<class UPasscodePuzzleButtonComponent*> ButtonList;
+		TArray<class UPasscodePuzzleButtonComponent*> ButtonList;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UStaticMeshComponent* Panel;
+		UStaticMeshComponent* Panel;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	class UBoxComponent* Collider;
+		class UBoxComponent* Collider;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UMaterial* NormalMat;
+		UMaterial* NormalMat;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UMaterial* SelectedMat;
+		UMaterial* SelectedMat;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TSubclassOf<class APasscodePuzzleButtonLink> LineBlueprint;
+		TSubclassOf<class APasscodePuzzleButtonLink> LineBlueprint;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		bool PlayCompletedSound;
@@ -47,6 +48,21 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		bool PlayButtonSound;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		bool bIsDone;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		ASliderActor* Slider;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class ATaskButtonBase* ButtonBase;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class USpaceCrashGameInstance* GameInstance;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class ALever* Lever;
 
 protected:
 	// Called when the game starts or when spawned
@@ -76,19 +92,19 @@ private:
 
 	float Subtimer = 0;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	void ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void ButtonEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void ButtonEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-	void InPanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void InPanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OutsidePanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void OutsidePanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

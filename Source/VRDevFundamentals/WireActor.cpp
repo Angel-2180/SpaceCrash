@@ -50,6 +50,11 @@ void AWireActor::BeginPlay()
 void AWireActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bTaskCompleted)
+	{
+		WireEnd->bTaskCompleted = true;
+	}
 }
 
 void AWireActor::WireSocketBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -27,6 +27,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		bool bPlayCableConnectedSound;
+
 	//Overlap functions
 	UFUNCTION()
 		void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,

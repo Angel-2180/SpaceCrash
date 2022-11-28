@@ -38,6 +38,9 @@ void AAlienController::BeginPlay()
 	BlackBoardComponent->SetValueAsObject("LeftDoor", Cast<UObject>(LeftDoor));
 	BlackBoardComponent->SetValueAsFloat("MinTimerBeforeRandomSound", MinTimerBeforeRandomSound);
 	BlackBoardComponent->SetValueAsFloat("MaxTimerBeforeRandomSound", MaxTimerBeforeRandomSound);
+	BlackBoardComponent->SetValueAsInt("RunSpeed", RunSpeed);
+	BlackBoardComponent->SetValueAsInt("WalkSpeed", WalkSpeed);
+	BlackBoardComponent->SetValueAsBool("AlienActivated", AlienActivated);
 }
 
 void AAlienController::PostInitializeComponents()

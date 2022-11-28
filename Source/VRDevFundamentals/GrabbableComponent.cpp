@@ -16,21 +16,24 @@ UGrabbableComponent::UGrabbableComponent()
 void UGrabbableComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InitialPos = GetComponentLocation();
+	InitialRot = GetComponentRotation();
 }
 
 void UGrabbableComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!IsLinked)
+	if (!IsLinked && !bTaskCompleted)
 	{
 		if (FVector::Dist(this->GetRelativeLocation(), PreviousParent->GetComponentLocation()) >= 2.0f)
 		{
 			TimerOfTeleportation += DeltaTime;
 			if (TimerOfTeleportation > 5)
 			{
-				this->SetRelativeLocation(PreviousParent->GetComponentLocation());
-				this->SetRelativeRotation(FRotator(0, 0, 0));
+				this->SetRelativeRotation(InitialRot);
+				this->SetRelativeLocation(InitialPos);
 				IsLinked = true;
 				TimerOfTeleportation = 0;
 			}
@@ -40,48 +43,56 @@ void UGrabbableComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UGrabbableComponent::Interact_Implementation(USceneComponent* ControllerUsed)
 {
-	IsLinked = true;
-	if (LastSocketTouched != nullptr)
+	if (!bTaskCompleted)
 	{
-		if (PreviousParent != nullptr)
+		IsLinked = true;
+		if (LastSocketTouched != nullptr)
 		{
-			LastSocketTouched->TotalValueOnThisSocket = -this->Value * LastSocketTouched->Value;
-			LastSocketTouched = nullptr;
+			if (PreviousParent != nullptr)
+			{
+				LastSocketTouched->TotalValueOnThisSocket = -this->Value * LastSocketTouched->Value;
+				LastSocketTouched = nullptr;
+			}
 		}
+		SetSimulatePhysics(false);
+		SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		AttachToComponent(ControllerUsed, FAttachmentTransformRules::KeepWorldTransform);
+		SetRelativeLocation(FVector(9.5, 0, 0));
+		SetRelativeRotation(FRotator(-90, 0, 180));
 	}
-	SetSimulatePhysics(false);
-	SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	AttachToComponent(ControllerUsed, FAttachmentTransformRules::KeepWorldTransform);
 }
 
 void UGrabbableComponent::StopInteract_Implementation()
 {
-	if (LastSocketTouched != nullptr)
+	if (!bTaskCompleted)
 	{
-		LastSocketTouched->IsParticleActive = true;
-		SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);		
-
-		LastSocketTouched->TotalValueOnThisSocket = this->Value * LastSocketTouched->Value;
-		LastSocketTouched->PlayCableConnectedSound = true;
-
-		AttachToComponent(Cast<USceneComponent>(LastSocketTouched), FAttachmentTransformRules::KeepWorldTransform);
-		this->SetRelativeLocation(FVector(0, 0, 0));
-		this->SetRelativeRotation(FRotator(0, 0, 0));
-	}
-
-	else
-	{
-		IsLinked = false;
-		SetSimulatePhysics(true);
-		SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
-		if (PreviousParent != nullptr)
+		if (LastSocketTouched != nullptr)
 		{
-			AttachToComponent(PreviousParent, FAttachmentTransformRules::KeepWorldTransform);
-			//this->SetRelativeLocation(PreviousParent->GetComponentLocation());
-			//this->SetRelativeRotation(FRotator(90, 0, 0));
+			LastSocketTouched->IsParticleActive = true;
+			SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+			DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+			LastSocketTouched->TotalValueOnThisSocket = this->Value * LastSocketTouched->Value;
+			LastSocketTouched->PlayCableConnectedSound = true;
+
+			AttachToComponent(Cast<USceneComponent>(LastSocketTouched), FAttachmentTransformRules::KeepWorldTransform);
+			this->SetRelativeLocation(FVector(0, 0, 0));
+			this->SetRelativeRotation(FRotator(0, 0, 0));
+		}
+
+		else
+		{
+			IsLinked = false;
+			SetSimulatePhysics(true);
+			SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+			DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+			if (PreviousParent != nullptr)
+			{
+				AttachToComponent(PreviousParent, FAttachmentTransformRules::KeepWorldTransform);
+				//this->SetRelativeLocation(PreviousParent->GetComponentLocation());
+				//this->SetRelativeRotation(FRotator(90, 0, 0));
+			}
 		}
 	}
 }

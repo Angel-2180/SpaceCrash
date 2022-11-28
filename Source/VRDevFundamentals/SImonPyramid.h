@@ -50,6 +50,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		bool bPlayFailedSound;
+
+	bool bPuzzleDone;
+
 	float Timer;
 
 	float SubTimer;
@@ -59,8 +62,22 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		void OnOverlapFaceBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void OnOverlapBaseBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void OnOverlapBaseEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex);
+
+	class USpaceCrashGameInstance* GameInstance;
+
+private:
+
+	class ASimonPyramidBase* PyramidBase;
 
 public:
 	// Called every frame

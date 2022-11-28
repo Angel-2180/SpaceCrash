@@ -69,7 +69,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		float MaxTimerBeforeRandomSound;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int RunSpeed = 400;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int WalkSpeed = 135;
+
 	float AttackCooldownTimer;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		bool AlienActivated = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool SurvivalMinigameActive = false;

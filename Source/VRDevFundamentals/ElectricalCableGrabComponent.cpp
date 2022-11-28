@@ -23,8 +23,8 @@ void UElectricalCableGrabComponent::TickComponent(float DeltaTime, ELevelTick Ti
 			if (TimerOfTeleportation >= 5)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, PreviousParent->K2_GetComponentLocation().ToString());
-				this->SetRelativeLocation(PreviousParent->K2_GetComponentLocation());
-				this->SetRelativeRotation(FRotator(90, 0, 0));
+				this->SetRelativeRotation(InitialRot);
+				this->SetRelativeLocation(InitialPos);
 				bIsLinked = true;
 				TimerOfTeleportation = 0;
 			}
@@ -51,6 +51,8 @@ void UElectricalCableGrabComponent::Interact_Implementation(USceneComponent* Con
 		SetSimulatePhysics(false);
 		SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		AttachToComponent(ControllerUsed, FAttachmentTransformRules::KeepWorldTransform);
+		SetRelativeLocation(FVector(0, -1, 1));
+		SetRelativeRotation(FRotator(0, 0, -90));
 	}
 }
 
@@ -64,6 +66,8 @@ void UElectricalCableGrabComponent::StopInteract_Implementation()
 			DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 
 			LastSocketTouched->bPlayCableConnectedSound = true;
+			LastSocketTouched->Linked = true;
+			GEngine->AddOnScreenDebugMessage(-1, 20, FColor::Emerald, TEXT("IsLinked:"), LastSocketTouched->Linked);
 			AttachToComponent(Cast<USceneComponent>(LastSocketTouched), FAttachmentTransformRules::KeepWorldTransform);
 			this->SetRelativeLocation(FVector(-5, 0, 0));
 			this->SetRelativeRotation(FRotator(0, 0, 90));
@@ -97,4 +101,7 @@ void UElectricalCableGrabComponent::BeginPlay()
 	{
 		FixedComponent = Cast<UScrewFixComponent>(Panel->GetComponentByClass(UScrewFixComponent::StaticClass()));
 	}
+
+	InitialPos = GetComponentLocation();
+	InitialRot = GetComponentRotation();
 }

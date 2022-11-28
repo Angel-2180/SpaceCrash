@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h
+#include "GameFramework/Actor.h"
 #include "SpaceCrashGameInstance.h"
 #include "Lever.generated.h"
 
@@ -34,10 +34,4 @@ public:
 		bool IsLeverActivated(USceneComponent* Lever);
 
 	float Timer;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		USpaceCrashGameInstance* GameInstance;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bPuzzleStarted;
 };

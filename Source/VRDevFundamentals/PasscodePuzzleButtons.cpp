@@ -7,7 +7,6 @@
 #include "Components/SphereComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
-#include "Subsystems/EditorActorSubsystem.h"
 
 // Sets default values
 APasscodePuzzleButtons::APasscodePuzzleButtons()

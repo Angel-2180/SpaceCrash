@@ -10,8 +10,8 @@ UCLASS()
 class VRDEVFUNDAMENTALS_API ACableLinkPuzzle : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ACableLinkPuzzle();
 
@@ -19,18 +19,32 @@ public:
 		USceneComponent* Panel;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<class AWireActor*> Wires;
+		TArray<class AWireActor*> Wires;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TArray<class UWireSocket*> WireSockets;
+		TArray<class UWireSocket*> WireSockets;
 
-	float TotalValue;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		bool bTaskCompleted;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float TotalValue;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float ValueToAchieve = 24;
+
+	bool bIsDone;
+
+	UPROPERTY(EditAnywhere)
+		FName LevelToLoad;
+
+	class USpaceCrashGameInstance* GameInstance;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 };

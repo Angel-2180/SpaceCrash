@@ -27,6 +27,10 @@ private:
 
 	class UScrewFixComponent* FixedComponent;
 
+	FVector InitialPos;
+
+	FRotator InitialRot;
+
 protected:
 
 	virtual void BeginPlay() override;

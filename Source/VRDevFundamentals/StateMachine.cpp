@@ -25,7 +25,7 @@ void UStateMachine::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemor
 		{
 			Alien->AudioPlayerRandomNoise->SetSound(Alien->RandomSounds[rand() % Alien->RandomSounds.Num()]);
 			Alien->AudioPlayerRandomNoise->Play();
-			BBComp->SetValueAsFloat("NewTimeForRandomSound", FMath::RandRange(BBComp->GetValueAsFloat("MinTimerBeforeRandomSound"), BBComp->GetValueAsFloat("MaxTimerBeforeRandomSound")));
+ 			BBComp->SetValueAsFloat("NewTimeForRandomSound", FMath::RandRange(BBComp->GetValueAsFloat("MinTimerBeforeRandomSound"), BBComp->GetValueAsFloat("MaxTimerBeforeRandomSound")));
 			Timer = 0;
 		}
 	}

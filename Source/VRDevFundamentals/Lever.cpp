@@ -17,24 +17,12 @@ ALever::ALever()
 void ALever::BeginPlay()
 {
 	Super::BeginPlay();
-	GameInstance = Cast<USpaceCrashGameInstance>(GetGameInstance());
 }
 
 // Called every frame
 void ALever::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (GameInstance->bFirstPuzzleIsDone && !GameInstance->bSecondPuzzleIsDone)
-	{
-		Timer += DeltaTime;
-		if (Timer >= 3)
-		{
-			if (bPuzzleStarted)
-			{
-				this->SetActorEnableCollision(true);
-			}
-		}
-	}
 }
 
 void ALever::UpdateLeverRotation(USceneComponent* Lever, class USphereComponent* OutterSphere, class USphereComponent* InnerSphere, ULeverGrabbable* LeverGrabbable)
@@ -66,12 +54,12 @@ void ALever::UpdateLeverRotation(USceneComponent* Lever, class USphereComponent*
 bool ALever::IsLeverActivated(USceneComponent* Lever)
 {
 	FRotator LeverRotation = Lever->GetComponentRotation();
-	if (LeverRotation.Pitch <= -55 && GameInstance->bFirstPuzzleIsDone)
+	if (LeverRotation.Pitch <= -55)
 	{
 		FRotator NewRotation = FRotator(-60, LeverRotation.Yaw, LeverRotation.Roll);
 		Lever->SetWorldRotation(NewRotation);
 		bLeverDown = true;
-		GameInstance->bSecondPuzzleIsDone = true;
+
 		this->SetActorTickEnabled(false);
 		this->SetActorEnableCollision(false);
 		return true;

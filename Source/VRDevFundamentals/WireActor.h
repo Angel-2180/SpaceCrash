@@ -25,6 +25,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		float Value;
 
+	bool bTaskCompleted;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

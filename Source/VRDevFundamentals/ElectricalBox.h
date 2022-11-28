@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ElectricalSocketComponent.h"
+#include "SpaceCrashGameInstance.h"
 #include "ElectricalBox.generated.h"
 
 //create delegate
@@ -17,6 +18,11 @@ class VRDEVFUNDAMENTALS_API AElectricalBox : public AActor
 public:
 	// Sets default values for this actor's properties
 	AElectricalBox();
+
+	bool bPuzzleActivated;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		USpaceCrashGameInstance* GameInstance;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		USceneComponent* Panel;
@@ -33,12 +39,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		int NbrOfConnectedWires;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class ALever* Lever;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-		void OnComplete();
 
 public:
 	// Called every frame

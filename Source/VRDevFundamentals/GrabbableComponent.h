@@ -21,6 +21,8 @@ public:
 
 	float Value;
 
+	bool bTaskCompleted;
+
 	USceneComponent* PreviousParent;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interact")
@@ -35,6 +37,10 @@ private:
 	float TimerOfTeleportation;
 
 	bool IsLinked = true;
+
+	FVector InitialPos;
+
+	FRotator InitialRot;
 
 public:
 	// Called every frame

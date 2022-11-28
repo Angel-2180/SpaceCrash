@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ScrewDriver.h"
-
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 
 // Sets default values
@@ -16,7 +17,7 @@ AScrewDriver::AScrewDriver()
 void AScrewDriver::Interact_Implementation(USceneComponent* ControllerUsed)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ScrewDriver: Interact"));
-
+	TimerOfTeleportation = 0;
 	bIsInHand = true;
 	this->GetStaticMeshComponent()->SetSimulatePhysics(false);
 	this->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
@@ -32,7 +33,7 @@ void AScrewDriver::StopInteract_Implementation()
 	bIsInHand = false;
 	bScrewFound = false;
 	ActiveScrew = nullptr;
-	bActivated = nullptr;
+	bActivated = false;
 	this->GetStaticMeshComponent()->SetSimulatePhysics(true);
 	this->GetStaticMeshComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	this->GetStaticMeshComponent()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
@@ -59,6 +60,20 @@ void AScrewDriver::Tick(float DeltaSeconds)
 			}
 		}
 	}
+	else
+	{
+		if (UKismetMathLibrary::Vector_Distance(this->GetActorLocation(), UGameplayStatics::GetPlayerPawn(GetWorld(), 0)->K2_GetActorLocation()) >= 100.0f)
+		{
+			TimerOfTeleportation += DeltaSeconds;
+			if (TimerOfTeleportation >= 5)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Teleporting");
+				this->SetActorLocation(InitialPos);
+				this->SetActorRotation(InitialRot);
+				TimerOfTeleportation = 0;
+			}
+		}
+	}
 }
 
 void AScrewDriver::BeginPlay()
@@ -67,6 +82,9 @@ void AScrewDriver::BeginPlay()
 
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AScrewDriver::OnBeginOverlap);
 	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AScrewDriver::OnEndOverlap);
+
+	InitialRot = this->GetActorRotation();
+	InitialPos = this->GetActorLocation();
 }
 
 void AScrewDriver::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

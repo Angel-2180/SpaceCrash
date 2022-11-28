@@ -1,18 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PasscodePuzzle.h"
 #include "PasscodePuzzleButtonComponent.h"
 #include "Components/BoxComponent.h"
 #include "PasscodePuzzleButtonLink.h"
 #include "IndexCollision.h"
+#include "TaskButtonBase.h"
+#include "Lever.h"
+#include "SpaceCrashGameInstance.h"
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 
 // Sets default values
 APasscodePuzzle::APasscodePuzzle()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	Panel = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Panel"));
@@ -37,11 +39,20 @@ APasscodePuzzle::APasscodePuzzle()
 void APasscodePuzzle::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//TArray<UActorComponent*> myarray = GetComponentsByClass(UPasscodePuzzleButtonComponent::StaticClass());
+	GameInstance = Cast<USpaceCrashGameInstance>(GetGameInstance());
+	TArray<AActor*> SliderArray;
+	GetAllChildActors(SliderArray);
+	Slider = Cast<ASliderActor>(SliderArray[0]);
+
+	if (Slider)
+	{
+		Slider->SetActorHiddenInGame(true);
+		Slider->SetActorEnableCollision(false);
+		Slider->SetActorTickEnabled(false);
+	}
+
 	for (int32 i = 0; i < ButtonList.Num(); i++)
 	{
-		//UPasscodePuzzleButtonComponent* button = Cast<UPasscodePuzzleButtonComponent>(myarray[i]);
 		ButtonList[i]->OnComponentBeginOverlap.AddDynamic(this, &APasscodePuzzle::ButtonBeginOverlap);
 		ButtonList[i]->OnComponentEndOverlap.AddDynamic(this, &APasscodePuzzle::ButtonEndOverlap);
 	}
@@ -59,109 +70,130 @@ void APasscodePuzzle::BeginPlay()
 void APasscodePuzzle::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Line != nullptr && Index != nullptr)
+	if (Lever->bLeverDown)
 	{
-		if (Index->SphereCollider->IsActive())
+		if (Line && Index)
 		{
-			Line->Spline->SetLocationAtSplinePoint(1, Index->GetActorLocation(), ESplineCoordinateSpace::World);
-			Line->SplineMesh->SetEndPosition(Index->GetActorLocation());
-		}
-		else
-		{
-			for (int i = 0; i < ButtonList.Num(); i++)
+			if (Index->SphereCollider->IsActive())
 			{
-				ButtonList[i]->SetMaterial(0, NormalMat);
+				Line->Spline->SetLocationAtSplinePoint(1, Index->GetActorLocation(), ESplineCoordinateSpace::World);
+				Line->SplineMesh->SetEndPosition(Index->GetActorLocation());
 			}
-			for (int i = 0; i < Links.Num(); i++)
+			else
 			{
-				Links[i]->Destroy();
-			}
-			Links.Empty();
-			ButtonPressed.Empty();
-			LastHitComponent = nullptr;
-			CurrentHitComponent = nullptr;
-			Line = nullptr;
-		}
-	}
-
-	if (ButtonPressed.IsEmpty())
-	{
-		Timer += DeltaTime;
-		if (Timer >= 10.0f)
-		{
-			Subtimer += DeltaTime;
-			if (Subtimer >= 0.0f && Subtimer <= 1.0f)
-			{
-				ButtonCombination[0]->SetMaterial(0, SelectedMat);
-			}
-
-			else if (Subtimer >= 1.0f && Subtimer <= 2.0f)
-			{
-				ButtonCombination[0]->SetMaterial(0, NormalMat);
-				ButtonCombination[1]->SetMaterial(0, SelectedMat);
-			}
-
-			else if (Subtimer >= 2.0f && Subtimer <= 3.0f)
-			{
-				ButtonCombination[1]->SetMaterial(0, NormalMat);
-				ButtonCombination[2]->SetMaterial(0, SelectedMat);
-			}
-
-			else if (Subtimer >= 3.0f && Subtimer <= 4.0f)
-			{
-				ButtonCombination[2]->SetMaterial(0, NormalMat);
-				ButtonCombination[3]->SetMaterial(0, SelectedMat);				
-			}
-
-			else if (Subtimer >= 4.0f && Subtimer <= 5.0f)
-			{
-				ButtonCombination[3]->SetMaterial(0, NormalMat);
-				Timer = 0;
-				Subtimer = 0;
-			}
-		}
-	}
-
-	else if (ButtonPressed.Num() == NbOfButtonNeededForCombination)
-	{
-		for (int i = 0; i < ButtonPressed.Num(); i++)
-		{
-			if (ButtonCombination[i] != ButtonPressed[i])
-			{
-				ButtonPressed.Empty();
-				for (int j = 0; j < Links.Num(); j++)
+				for (int i = 0; i < ButtonList.Num(); i++)
 				{
-					Links[j]->Destroy();
+					ButtonList[i]->SetMaterial(0, NormalMat);
+				}
+				for (int i = 0; i < Links.Num(); i++)
+				{
+					Links[i]->Destroy();
 				}
 				Links.Empty();
-				CurrentHitComponent->SetMaterial(0, NormalMat);
+				ButtonPressed.Empty();
+				LastHitComponent = nullptr;
 				CurrentHitComponent = nullptr;
 				Line = nullptr;
-				PlayFailedSound = true;
-				return;
 			}
-		}	
-
-		for (int i = 0; i < ButtonList.Num(); i++)
-		{
-			ButtonList[i]->SetMaterial(0, SelectedMat);
 		}
-		SetActorEnableCollision(false);
-		SetActorTickEnabled(false);
-		PlayCompletedSound = true;
-	}
 
-	else
-	{
-		Timer = 0;
-		Subtimer = 0;
+		if (ButtonPressed.IsEmpty())
+		{
+			Timer += DeltaTime;
+			if (Timer >= 5.0f)
+			{
+				Subtimer += DeltaTime;
+				if (Subtimer >= 0.0f && Subtimer <= 1.0f)
+				{
+					ButtonCombination[0]->SetMaterial(0, SelectedMat);
+				}
+
+				else if (Subtimer >= 1.0f && Subtimer <= 2.0f)
+				{
+					ButtonCombination[0]->SetMaterial(0, NormalMat);
+					ButtonCombination[1]->SetMaterial(0, SelectedMat);
+				}
+
+				else if (Subtimer >= 2.0f && Subtimer <= 3.0f)
+				{
+					ButtonCombination[1]->SetMaterial(0, NormalMat);
+					ButtonCombination[2]->SetMaterial(0, SelectedMat);
+				}
+
+				else if (Subtimer >= 3.0f && Subtimer <= 4.0f)
+				{
+					ButtonCombination[2]->SetMaterial(0, NormalMat);
+					ButtonCombination[3]->SetMaterial(0, SelectedMat);
+				}
+
+				else if (Subtimer >= 4.0f && Subtimer <= 5.0f)
+				{
+					ButtonCombination[3]->SetMaterial(0, NormalMat);
+					Timer = 0;
+					Subtimer = 0;
+				}
+			}
+		}
+
+		else if (ButtonPressed.Num() == NbOfButtonNeededForCombination)
+		{
+			for (int i = 0; i < ButtonPressed.Num(); i++)
+			{
+				if (ButtonCombination[i] != ButtonPressed[i])
+				{
+					ButtonPressed.Empty();
+					for (int j = 0; j < Links.Num(); j++)
+					{
+						Links[j]->Destroy();
+					}
+					Links.Empty();
+					CurrentHitComponent->SetMaterial(0, NormalMat);
+					CurrentHitComponent = nullptr;
+					Line = nullptr;
+					PlayFailedSound = true;
+					return;
+				}
+			}
+
+			for (int i = 0; i < ButtonList.Num(); i++)
+			{
+				ButtonList[i]->SetMaterial(0, SelectedMat);
+			}
+			SetActorEnableCollision(false);
+			//SetActorTickEnabled(false);
+			PlayCompletedSound = true;
+
+			if (Slider && !bIsDone)
+			{
+				Slider->SetActorHiddenInGame(false);
+				Slider->SetActorEnableCollision(true);
+				Slider->SetActorTickEnabled(true);
+			}
+			bIsDone = true;
+		}
+
+		else
+		{
+			Timer = 0;
+			Subtimer = 0;
+		}
+
+		if (Slider->bActivated && bIsDone)
+		{
+			ButtonBase->bTaskActive = true;
+		}
+		if (ButtonBase->bTaskCompleted && bIsDone)
+		{
+			GameInstance->bFirstPuzzleIsDone = true;
+			SetActorTickEnabled(false);
+		}
 	}
 }
 
 void APasscodePuzzle::ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
-	if (Index != nullptr && Finger != nullptr)
+	if (Index && Finger)
 	{
 		if (Index->SphereCollider->IsActive() && LastHitComponent != OverlappedComp)
 		{
@@ -172,11 +204,11 @@ void APasscodePuzzle::ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 			}
 			OverlappedComp->SetMaterial(0, SelectedMat);
 			PlayButtonSound = true;
-			if (Line != nullptr)
+			if (Line)
 			{
 				Line->Spline->SetLocationAtSplinePoint(1, OverlappedComp->GetComponentLocation(), ESplineCoordinateSpace::World);
 				Line->SplineMesh->SetEndPosition(OverlappedComp->GetComponentLocation());
-				Line = nullptr;				
+				Line = nullptr;
 			}
 			if (ButtonPressed.Num() != 0)
 			{
@@ -194,7 +226,7 @@ void APasscodePuzzle::ButtonBeginOverlap(UPrimitiveComponent* OverlappedComp, AA
 void APasscodePuzzle::ButtonEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
-	if (Index != nullptr && Finger != nullptr)
+	if (Index && Finger)
 	{
 		if (Index->SphereCollider->IsActive() && LastHitComponent != OverlappedComp)
 		{
@@ -212,15 +244,14 @@ void APasscodePuzzle::ButtonEndOverlap(UPrimitiveComponent* OverlappedComp, AAct
 			Line->Spline->GetLocationAndTangentAtSplinePoint(1, EndPos, EndTan, ESplineCoordinateSpace::World);
 			Line->SplineMesh->SetStartAndEnd(StartPos, StartTan, EndPos, EndTan);
 			Links.Add(Line);
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, TEXT("AddLine"));
-		} 
+		}
 	}
 }
 
 void APasscodePuzzle::InPanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
-	if (Finger != nullptr)
+	if (Finger)
 	{
 		Index = Finger;
 	}
@@ -229,7 +260,7 @@ void APasscodePuzzle::InPanel(UPrimitiveComponent* OverlappedComp, AActor* Other
 void APasscodePuzzle::OutsidePanel(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AIndexCollision* Finger = Cast<AIndexCollision>(OtherActor);
-	if (Finger != nullptr)
+	if (Finger)
 	{
 		Index = nullptr;
 		for (int i = 0; i < Links.Num(); i++)
@@ -299,7 +330,7 @@ void APasscodePuzzle::GenerateAdjacentButton()
 			ButtonList[i]->AdjacentButtons.Add(ButtonList[8]);
 		}
 
-		if(i == 5)
+		if (i == 5)
 		{
 			ButtonList[i]->AdjacentButtons.Add(ButtonList[1]);
 			ButtonList[i]->AdjacentButtons.Add(ButtonList[2]);

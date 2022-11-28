@@ -32,22 +32,21 @@ void AIndexCollision::SetVariables(UStaticMeshComponent* MeshVar, USphereCompone
 
 void AIndexCollision::SetColliderState(bool IsActive)
 {
-	switch (IsActive)
+	if (IsActive)
 	{
-	case true:
-		if(Mesh != nullptr)
+		if (Mesh != nullptr)
 			Mesh->SetVisibility(false);
 
-		if(SphereCollider != nullptr)
+		if (SphereCollider != nullptr)
 			SphereCollider->Activate();
-		break;
-	case false:
+	}
+	else
+	{
 		if (Mesh != nullptr)
 			Mesh->SetVisibility(true);
 
 		if (SphereCollider != nullptr)
-			SphereCollider->Deactivate();
-		break;
+		SphereCollider->Deactivate();
 	}
 }
 
